@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MHT-CET Student Dashboard</title>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f7fb;
+            color: #172033;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            height: 70px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        .logo span {
+            color: #111827;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .student-name {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .logout-btn {
+            border: none;
+            background: #ef4444;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        /* MAIN */
+        .container {
+            width: min(1200px, 94%);
+            margin: 30px auto;
+        }
+
+        .welcome {
+            background: linear-gradient(135deg, #2563eb, #4f46e5);
+            color: white;
+            padding: 30px;
+            border-radius: 18px;
+            margin-bottom: 25px;
+        }
+
+        .welcome h1 {
+            font-size: 30px;
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            opacity: 0.9;
+        }
+
+        /* STATS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 22px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        /* SECTION */
+        .section {
+            margin-bottom: 35px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 22px;
+        }
+
+        /* TESTS */
+        .tests-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .test-card {
+            background: white;
+            border-radius: 15px;
+            padding: 22px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e5e7eb;
+        }
+
+        .test-card h3 {
+            margin-bottom: 10px;
+            font-size: 19px;
+        }
+
+        .test-card p {
+            color: #6b7280;
+            line-height: 1.5;
+            min-height: 48px;
+        }
+
+        .test-info {
+            display: flex;
+            gap: 10px;
+            margin: 18px 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 7px 10px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .start-btn {
+            width: 100%;
+            border: none;
+            background: #2563eb;
+            color: white;
+            padding: 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 15px;
+        }
+
+        .start-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .start-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* HISTORY */
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow-x: auto;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            font-size: 14px;
+        }
+
+        td {
+            color: #4b5563;
+        }
+
+        .score {
+            font-weight: 800;
+            color: #2563eb;
+        }
+
+        /* MATERIALS */
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .material-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.04);
+        }
+
+        .material-card h3 {
+            margin-bottom: 8px;
+        }
+
+        .material-card p {
+            color: #6b7280;
+            margin-bottom: 15px;
+        }
+
+        .material-btn {
+            display: inline-block;
+            text-decoration: none;
+            background: #111827;
+            color: white;
+            padding: 9px 13px;
+            border-radius: 7px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* EMPTY */
+        .empty {
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        /* LOADING */
+        .loading {
+            padding: 30px;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        /* ERROR */
+        .error-box {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        /* MOBILE */
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tests-grid,
+            .materials-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .navbar {
+                padding: 0 15px;
+            }
+
+            .student-name {
+                display: none;
+            }
+
+            .container {
+                width: 94%;
+                margin: 20px auto;
+            }
+
+            .welcome {
+                padding: 22px;
+            }
+
+            .welcome h1 {
+                font-size: 24px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-number {
+                font-size: 23px;
+            }
+
+            .tests-grid,
+            .materials-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+
+        <div class="logo">
+            MHT-CET <span>Mock Test</span>
+        </div>
+
+        <div class="nav-right">
+            <div class="student-name" id="studentName">
+                Loading...
+            </div>
+
+            <button class="logout-btn" id="logoutBtn">
+                Logout
+            </button>
+        </div>
+
+    </nav>
+
+
+    <main class="container">
+
+        <!-- ERROR -->
+        <div class="error-box" id="errorBox"></div>
+
+
+        <!-- WELCOME -->
+        <section class="welcome">
+
+            <h1>
+                Welcome, <span id="welcomeName">Student</span> 👋
+            </h1>
+
+            <p>
+                Prepare for your MHT-CET exam with mock tests and study materials.
+            </p>
+
+        </section>
+
+
+        <!-- STATS -->
+        <section class="stats">
+
+            <div class="stat-card">
+                <h3>Available Tests</h3>
+                <div class="stat-number" id="testCount">
+                    0
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Tests Attempted</h3>
+                <div class="stat-number" id="attemptCount">
+                    0
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Best Score</h3>
+                <div class="stat-number" id="bestScore">
+                    0
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Attempts</h3>
+                <div class="stat-number" id="totalAttempts">
+                    0
+                </div>
+            </div>
+
+        </section>
+
+
+        <!-- MOCK TESTS -->
+        <section class="section">
+
+            <div class="section-header">
+                <h2>Available Mock Tests</h2>
+            </div>
+
+            <div id="testsContainer" class="tests-grid">
+
+                <div class="loading">
+                    Loading mock tests...
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- TEST HISTORY -->
+        <section class="section">
+
+            <div class="section-header">
+                <h2>My Test History</h2>
+            </div>
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Test</th>
+                            <th>Score</th>
+                            <th>Correct</th>
+                            <th>Wrong</th>
+                            <th>Unanswered</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="historyBody">
+
+                        <tr>
+                            <td colspan="6" class="loading">
+                                Loading history...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- STUDY MATERIALS -->
+        <section class="section">
+
+            <div class="section-header">
+                <h2>Study Materials</h2>
+            </div>
+
+            <div id="materialsContainer" class="materials-grid">
+
+                <div class="loading">
+                    Loading study materials...
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+<script>
+
+    // --------------------------------------------------
+    // SUPABASE CHECK
+    // --------------------------------------------------
+
+    if (
+        typeof SUPABASE_URL === "undefined" ||
+        typeof SUPABASE_ANON_KEY === "undefined"
+    ) {
+
+        showError(
+            "Supabase configuration is missing. Check js/config.js."
+        );
+
+        throw new Error("Supabase configuration missing.");
+
+    }
+
+
+    const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+
+    let currentUser = null;
+
+
+    // --------------------------------------------------
+    // DOM
+    // --------------------------------------------------
+
+    const studentName = document.getElementById("studentName");
+    const welcomeName = document.getElementById("welcomeName");
+
+    const testCount = document.getElementById("testCount");
+    const attemptCount = document.getElementById("attemptCount");
+    const bestScore = document.getElementById("bestScore");
+    const totalAttempts = document.getElementById("totalAttempts");
+
+    const testsContainer = document.getElementById("testsContainer");
+    const historyBody = document.getElementById("historyBody");
+    const materialsContainer = document.getElementById("materialsContainer");
+
+    const logoutBtn = document.getElementById("logoutBtn");
+
+
+    // --------------------------------------------------
+    // ERROR
+    // --------------------------------------------------
+
+    function showError(message) {
+
+        const box = document.getElementById("errorBox");
+
+        box.textContent = message;
+        box.style.display = "block";
+
+        console.error(message);
+
+    }
+
+
+    function hideError() {
+
+        const box = document.getElementById("errorBox");
+
+        box.style.display = "none";
+
+    }
+
+
+    // --------------------------------------------------
+    // HTML ESCAPE
+    // --------------------------------------------------
+
+    function escapeHTML(value) {
+
+        if (value === null || value === undefined) {
+            return "";
+        }
+
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    // --------------------------------------------------
+    // DATE
+    // --------------------------------------------------
+
+    function formatDate(dateValue) {
+
+        if (!dateValue) {
+            return "-";
+        }
+
+        const date = new Date(dateValue);
+
+        if (Number.isNaN(date.getTime())) {
+            return "-";
+        }
+
+        return date.toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+
+    }
+
+
+    // --------------------------------------------------
+    // LOAD USER
+    // --------------------------------------------------
+
+    async function loadUser() {
+
+        const {
+            data: {
+                session
+            },
+            error
+        } = await supabaseClient.auth.getSession();
+
+
+        if (error) {
+
+            throw error;
+
+        }
+
+
+        if (!session || !session.user) {
+
+            window.location.href = "login.html";
+            return;
+
+        }
+
+
+        currentUser = session.user;
+
+
+        // Get profile
+        const {
+            data: profile,
+            error: profileError
+        } = await supabaseClient
+            .from("profiles")
+            .select("id, full_name, email, role")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+
+
+        if (profileError) {
+
+            throw profileError;
+
+        }
+
+
+        // If admin opens dashboard, send to admin page
+        if (profile && profile.role === "admin") {
+
+            window.location.href = "admin.html";
+            return;
+
+        }
+
+
+        let name = "Student";
+
+
+        if (profile && profile.full_name) {
+
+            name = profile.full_name;
+
+        } else if (currentUser.user_metadata) {
+
+            name =
+                currentUser.user_metadata.full_name ||
+                currentUser.email?.split("@")[0] ||
+                "Student";
+
+        } else if (currentUser.email) {
+
+            name = currentUser.email.split("@")[0];
+
+        }
+
+
+        studentName.textContent = name;
+        welcomeName.textContent = name;
+
+    }
+
+
+    // --------------------------------------------------
+    // LOAD MOCK TESTS
+    // --------------------------------------------------
+
+    async function loadTests() {
+
+        testsContainer.innerHTML =
+            `<div class="loading">Loading mock tests...</div>`;
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("mock_tests")
+            .select(`
+                id,
+                title,
+                description,
+                duration_minutes,
+                total_questions,
+                is_active
+            `)
+            .eq("is_active", true)
+            .order("id", {
+                ascending: true
+            });
+
+
+        if (error) {
+
+            console.error("Mock test error:", error);
+
+            testsContainer.innerHTML =
+                `<div class="empty">
+                    Unable to load mock tests.
+                 </div>`;
+
+            throw error;
+
+        }
+
+
+        const tests = data || [];
+
+
+        testCount.textContent = tests.length;
+
+
+        if (tests.length === 0) {
+
+            testsContainer.innerHTML =
+                `<div class="empty">
+                    No mock tests are available right now.
+                 </div>`;
+
+            return;
+
+        }
+
+
+        testsContainer.innerHTML = tests.map(test => {
+
+            return `
+
+                <div class="test-card">
+
+                    <h3>
+                        ${escapeHTML(test.title)}
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(
+                            test.description ||
+                            "Full MHT-CET practice mock test."
+                        )}
+                    </p>
+
+                    <div class="test-info">
+
+                        <span class="badge">
+                            ${Number(test.total_questions || 0)}
+                            Questions
+                        </span>
+
+                        <span class="badge">
+                            ${Number(test.duration_minutes || 0)}
+                            Minutes
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="start-btn"
+                        onclick="startTest(${Number(test.id)})"
+                    >
+                        Start Test
+                    </button>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+    }
+
+
+    // --------------------------------------------------
+    // START TEST
+    // --------------------------------------------------
+
+    async function startTest(testId) {
+
+        if (!currentUser) {
+
+            window.location.href = "login.html";
+            return;
+
+        }
+
+
+        try {
+
+            // Check that test actually exists
+            const {
+                data: test,
+                error
+            } = await supabaseClient
+                .from("mock_tests")
+                .select("id, title, is_active")
+                .eq("id", testId)
+                .eq("is_active", true)
+                .maybeSingle();
+
+
+            if (error) {
+
+                throw error;
+
+            }
+
+
+            if (!test) {
+
+                alert("This test is not available.");
+
+                return;
+
+            }
+
+
+            /*
+             * Store selected test.
+             * test.html can read this value.
+             */
+            localStorage.setItem(
+                "selected_test_id",
+                String(test.id)
+            );
+
+            localStorage.setItem(
+                "selected_test_title",
+                test.title || "MHT-CET Mock Test"
+            );
+
+
+            /*
+             * Go to test page.
+             */
+            window.location.href =
+                "test.html?test_id=" +
+                encodeURIComponent(test.id);
+
+        }
+
+        catch (error) {
+
+            console.error("Start test error:", error);
+
+            showError(
+                "Could not start the test. Please check that test.html exists and your Supabase questions are available."
+            );
+
+        }
+
+    }
+
+
+    // --------------------------------------------------
+    // LOAD HISTORY
+    // --------------------------------------------------
+
+    async function loadHistory() {
+
+        historyBody.innerHTML =
+            `<tr>
+                <td colspan="6" class="loading">
+                    Loading history...
+                </td>
+             </tr>`;
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("test_attempts")
+            .select(`
+                id,
+                test_id,
+                score,
+                correct_answers,
+                wrong_answers,
+                unanswered,
+                total_questions,
+                submitted_at,
+                created_at,
+                mock_tests (
+                    title
+                )
+            `)
+            .eq("user_id", currentUser.id)
+            .order("created_at", {
+                ascending: false
+            });
+
+
+        if (error) {
+
+            console.error("History error:", error);
+
+            historyBody.innerHTML =
+                `<tr>
+                    <td colspan="6" class="empty">
+                        Unable to load test history.
+                    </td>
+                 </tr>`;
+
+            throw error;
+
+        }
+
+
+        const attempts = data || [];
+
+
+        attemptCount.textContent = attempts.length;
+        totalAttempts.textContent = attempts.length;
+
+
+        if (attempts.length === 0) {
+
+            historyBody.innerHTML =
+                `<tr>
+                    <td colspan="6" class="empty">
+                        You have not attempted any mock test yet.
+                    </td>
+                 </tr>`;
+
+            bestScore.textContent = "0";
+
+            return;
+
+        }
+
+
+        // Best score
+        const scores = attempts
+            .map(item => Number(item.score || 0))
+            .filter(score => Number.isFinite(score));
+
+
+        const best =
+            scores.length > 0
+                ? Math.max(...scores)
+                : 0;
+
+
+        bestScore.textContent = best;
+
+
+        historyBody.innerHTML = attempts.map(attempt => {
+
+            const testTitle =
+                attempt.mock_tests?.title ||
+                "Mock Test";
+
+
+            return `
+
+                <tr>
+
+                    <td>
+                        ${escapeHTML(testTitle)}
+                    </td>
+
+                    <td class="score">
+                        ${Number(attempt.score || 0)}
+                    </td>
+
+                    <td>
+                        ${Number(attempt.correct_answers || 0)}
+                    </td>
+
+                    <td>
+                        ${Number(attempt.wrong_answers || 0)}
+                    </td>
+
+                    <td>
+                        ${Number(attempt.unanswered || 0)}
+                    </td>
+
+                    <td>
+                        ${formatDate(
+                            attempt.submitted_at ||
+                            attempt.created_at
+                        )}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join("");
+
+    }
+
+
+    // --------------------------------------------------
+    // LOAD STUDY MATERIALS
+    // --------------------------------------------------
+
+    async function loadMaterials() {
+
+        materialsContainer.innerHTML =
+            `<div class="loading">
+                Loading study materials...
+             </div>`;
+
+
+        /*
+         * If the study_materials table does not exist,
+         * dashboard will not crash.
+         */
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("study_materials")
+            .select(`
+                id,
+                title,
+                subject,
+                chapter,
+                description,
+                file_name,
+                file_url,
+                is_published,
+                created_at
+            `)
+            .eq("is_published", true)
+            .order("created_at", {
+                ascending: false
+            });
+
+
+        if (error) {
+
+            console.warn(
+                "Study materials are not available:",
+                error
+            );
+
+            materialsContainer.innerHTML =
+                `<div class="empty">
+                    Study materials will appear here when the admin uploads them.
+                 </div>`;
+
+            return;
+
+        }
+
+
+        const materials = data || [];
+
+
+        if (materials.length === 0) {
+
+            materialsContainer.innerHTML =
+                `<div class="empty">
+                    No study materials uploaded yet.
+                 </div>`;
+
+            return;
+
+        }
+
+
+        materialsContainer.innerHTML =
+            materials.map(material => {
+
+                return `
+
+                    <div class="material-card">
+
+                        <h3>
+                            ${escapeHTML(material.title)}
+                        </h3>
+
+                        <p>
+                            <strong>
+                                ${escapeHTML(material.subject || "")}
+                            </strong>
+
+                            ${
+                                material.chapter
+                                    ? " • " +
+                                      escapeHTML(material.chapter)
+                                    : ""
+                            }
+                        </p>
+
+                        ${
+                            material.description
+                                ? `
+                                    <p>
+                                        ${escapeHTML(
+                                            material.description
+                                        )}
+                                    </p>
+                                  `
+                                : ""
+                        }
+
+                        ${
+                            material.file_url
+                                ? `
+                                    <a
+                                        class="material-btn"
+                                        href="${escapeHTML(
+                                            material.file_url
+                                        )}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        Open Material
+                                    </a>
+                                  `
+                                : `
+                                    <span>
+                                        File unavailable
+                                    </span>
+                                  `
+                        }
+
+                    </div>
+
+                `;
+
+            }).join("");
+
+    }
+
+
+    // --------------------------------------------------
+    // LOGOUT
+    // --------------------------------------------------
+
+    logoutBtn.addEventListener(
+        "click",
+        async function () {
+
+            logoutBtn.disabled = true;
+            logoutBtn.textContent = "Logging out...";
+
+
+            const {
+                error
+            } = await supabaseClient.auth.signOut();
+
+
+            if (error) {
+
+                console.error(error);
+
+                logoutBtn.disabled = false;
+                logoutBtn.textContent = "Logout";
+
+                showError(
+                    "Could not log out. Please try again."
+                );
+
+                return;
+
+            }
+
+
+            localStorage.removeItem("selected_test_id");
+            localStorage.removeItem("selected_test_title");
+
+
+            window.location.href = "login.html";
+
+        }
+    );
+
+
+    // --------------------------------------------------
+    // AUTH STATE
+    // --------------------------------------------------
+
+    supabaseClient.auth.onAuthStateChange(
+        (event, session) => {
+
+            if (event === "SIGNED_OUT" || !session) {
+
+                window.location.href = "login.html";
+
+            }
+
+        }
+    );
+
+
+    // --------------------------------------------------
+    // INITIALIZE DASHBOARD
+    // --------------------------------------------------
+
+    async function initializeDashboard() {
+
+        try {
+
+            hideError();
+
+
+            await loadUser();
+
+
+            if (!currentUser) {
+                return;
+            }
+
+
+            /*
+             * Load all dashboard sections.
+             */
+            await Promise.all([
+                loadTests(),
+                loadHistory(),
+                loadMaterials()
+            ]);
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "Dashboard initialization error:",
+                error
+            );
+
+
+            showError(
+                error?.message ||
+                "Dashboard could not load. Please refresh the page."
+            );
+
+        }
+
+    }
+
+
+    initializeDashboard();
+
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MHT-CET Login</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        padding: 20px;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 420px;
+        background: white;
+        padding: 35px;
+        border-radius: 18px;
+        box-shadow: 0 15px 40px rgba(0,0,0,.2);
+    }
+
+    .logo {
+        text-align: center;
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #172033;
+        margin-bottom: 8px;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #667085;
+        margin-bottom: 25px;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    input {
+        width: 100%;
+        padding: 13px;
+        border: 1px solid #d0d5dd;
+        border-radius: 9px;
+        margin-bottom: 17px;
+        font-size: 15px;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: #4f46e5;
+    }
+
+    button {
+        width: 100%;
+        padding: 13px;
+        border: 0;
+        border-radius: 9px;
+        background: #4f46e5;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+    }
+
+    .message {
+        display: none;
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .error {
+        display: block;
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .success {
+        display: block;
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .register {
+        text-align: center;
+        margin-top: 20px;
+        color: #667085;
+    }
+
+    .register a {
+        color: #4f46e5;
+        font-weight: bold;
+        text-decoration: none;
+    }
+
+    .home {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #667085;
+        text-decoration: none;
+        font-size: 14px;
+    }
+</style>
+
+
+</head>
+
+<body>
+
+<div class="login-box">
+
+<div class="logo">🎓</div>
+
+<h1>MHT-CET Login</h1>
+
+<p class="subtitle">
+    Student & Owner Login
+</p>
+
+<form id="loginForm">
+
+    <label for="email">Email</label>
+
+    <input
+        type="email"
+        id="email"
+        placeholder="Enter your email"
+        required
+    >
+
+    <label for="password">Password</label>
+
+    <input
+        type="password"
+        id="password"
+        placeholder="Enter your password"
+        required
+    >
+
+    <button type="submit" id="loginBtn">
+        Login
+    </button>
+
+</form>
+
+<div id="message" class="message"></div>
+
+<div class="register">
+    Don't have an account?
+    <a href="register.html">Register</a>
+</div>
+
+<a href="index.html" class="home">
+    ← Back to Home
+</a>
+
+
+</div>
+
+<script>
+
+    
+    if (
+        typeof SUPABASE_URL === "undefined" ||
+        typeof SUPABASE_ANON_KEY === "undefined"
+    ) {
+        document.getElementById("message").textContent =
+            "Configuration error: js/config.js was not loaded.";
+
+        document.getElementById("message").className =
+            "message error";
+
+        throw new Error("Supabase configuration not loaded.");
+    }
+
+    const supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+    const loginForm = document.getElementById("loginForm");
+    const loginBtn = document.getElementById("loginBtn");
+    const message = document.getElementById("message");
+
+    function showMessage(text, type) {
+        message.textContent = text;
+        message.className = "message " + type;
+    }
+
+    loginForm.addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const email = document
+            .getElementById("email")
+            .value
+            .trim();
+
+        const password = document
+            .getElementById("password")
+            .value;
+
+        if (!email || !password) {
+            showMessage(
+                "Please enter your email and password.",
+                "error"
+            );
+            return;
+        }
+
+        loginBtn.disabled = true;
+        loginBtn.textContent = "Logging in...";
+        message.className = "message";
+
+        try {
+
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+            if (error) {
+
+                console.error("Supabase login error:", error);
+
+                showMessage(
+                    "Incorrect email or password. Please register first or reset your password in Supabase.",
+                    "error"
+                );
+
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Login";
+
+                return;
+            }
+
+            if (!data || !data.user) {
+
+                showMessage(
+                    "Login failed. User account was not found.",
+                    "error"
+                );
+
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Login";
+
+                return;
+            }
+
+    
+            const {
+                data: profile,
+                error: profileError
+            } = await supabaseClient
+                .from("profiles")
+                .select("role")
+                .eq("id", data.user.id)
+                .maybeSingle();
+
+            if (profileError) {
+
+                console.error(
+                    "Profile loading error:",
+                    profileError
+                );
+
+                showMessage(
+                    "Login worked, but the profile could not be loaded.",
+                    "error"
+                );
+
+                loginBtn.disabled = false;
+                loginBtn.textContent = "Login";
+
+                return;
+            }
+
+            
+            if (profile && profile.role === "admin") {
+
+                showMessage(
+                    "Admin login successful. Opening owner panel...",
+                    "success"
+                );
+
+                setTimeout(function() {
+                    window.location.href = "admin.html";
+                }, 700);
+
+                return;
+            }
+
+            
+            showMessage(
+                "Login successful. Opening dashboard...",
+                "success"
+            );
+
+            setTimeout(function() {
+                window.location.href = "dashboard.html";
+            }, 700);
+
+        } catch (error) {
+
+            console.error("Unexpected error:", error);
+
+            showMessage(
+                "Something went wrong: " + error.message,
+                "error"
+            );
+
+            loginBtn.disabled = false;
+            loginBtn.textContent = "Login";
+        }
+
+    });
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,3007 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHT-CET Admin Panel</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./js/config.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    background:#f4f7fb;
+    color:#172033;
+}
+
+header{
+    background:linear-gradient(135deg,#4f46e5,#7c3aed);
+    color:white;
+    padding:18px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+
+header h1{
+    font-size:22px;
+}
+
+.logout{
+    background:white;
+    color:#4f46e5;
+    border:0;
+    padding:10px 17px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.container{
+    max-width:1250px;
+    margin:auto;
+    padding:25px;
+}
+
+.loading{
+    text-align:center;
+    padding:40px;
+    font-size:18px;
+}
+
+.hidden{
+    display:none!important;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.stat{
+    background:white;
+    padding:20px;
+    border-radius:14px;
+    box-shadow:0 4px 15px rgba(0,0,0,.06);
+}
+
+.stat h3{
+    color:#667085;
+    font-size:14px;
+    margin-bottom:10px;
+}
+
+.stat p{
+    font-size:28px;
+    font-weight:bold;
+    color:#4f46e5;
+}
+
+.card{
+    background:white;
+    padding:22px;
+    border-radius:14px;
+    margin-bottom:25px;
+    box-shadow:0 4px 15px rgba(0,0,0,.06);
+}
+
+.card h2{
+    margin-bottom:18px;
+    font-size:20px;
+}
+
+input,select,textarea{
+    width:100%;
+    padding:11px;
+    border:1px solid #d0d5dd;
+    border-radius:8px;
+    margin-top:6px;
+    margin-bottom:14px;
+    font-size:14px;
+}
+
+textarea{
+    min-height:90px;
+    resize:vertical;
+}
+
+label{
+    font-size:14px;
+    font-weight:bold;
+}
+
+button{
+    border:0;
+    border-radius:8px;
+    padding:10px 15px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+.primary{
+    background:#4f46e5;
+    color:white;
+}
+
+.secondary{
+    background:#eef2ff;
+    color:#4338ca;
+}
+
+.danger{
+    background:#dc2626;
+    color:white;
+}
+
+.small{
+    padding:7px 10px;
+    font-size:12px;
+}
+
+.message{
+    margin-top:10px;
+    padding:10px;
+    border-radius:8px;
+    display:none;
+}
+
+.success{
+    display:block;
+    background:#dcfce7;
+    color:#166534;
+}
+
+.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.info{
+    display:block;
+    background:#e0f2fe;
+    color:#075985;
+}
+
+.table-wrap{
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:700px;
+}
+
+th,td{
+    padding:12px;
+    border-bottom:1px solid #eaecf0;
+    text-align:left;
+    font-size:14px;
+}
+
+th{
+    background:#f8fafc;
+}
+
+.badge{
+    padding:5px 9px;
+    border-radius:20px;
+    background:#dcfce7;
+    color:#166534;
+    font-size:12px;
+}
+
+.grid2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.question-counter{
+    background:#f5f3ff;
+    color:#5b21b6;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+    font-weight:bold;
+}
+
+.material-file{
+    word-break:break-all;
+}
+
+.material-link{
+    color:#4f46e5;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.material-link:hover{
+    text-decoration:underline;
+}
+
+.upload-box{
+    border:2px dashed #c7d2fe;
+    background:#f8faff;
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:15px;
+}
+
+.help-text{
+    color:#667085;
+    font-size:13px;
+    margin-top:-8px;
+    margin-bottom:14px;
+}
+
+@media(max-width:800px){
+    .stats{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .grid2{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:500px){
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    header{
+        padding:15px;
+    }
+
+    header h1{
+        font-size:18px;
+    }
+
+    .container{
+        padding:15px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🎓 MHT-CET Owner Panel</h1>
+    <button class="logout" id="logoutBtn">Logout</button>
+</header>
+
+<div id="loading" class="loading">
+    Checking admin access...
+</div>
+
+<main id="adminContent" class="container hidden">
+
+<!-- ================= STATS ================= -->
+
+<div class="stats">
+
+    <div class="stat">
+        <h3>Total Tests</h3>
+        <p id="testCount">0</p>
+    </div>
+
+    <div class="stat">
+        <h3>Total Questions</h3>
+        <p id="questionCount">0</p>
+    </div>
+
+    <div class="stat">
+        <h3>Total Students</h3>
+        <p id="studentCount">0</p>
+    </div>
+
+    <div class="stat">
+        <h3>Total Attempts</h3>
+        <p id="attemptCount">0</p>
+    </div>
+
+</div>
+
+
+<!-- ================= CREATE TEST ================= -->
+
+<section class="card">
+
+<h2>➕ Create Mock Test</h2>
+
+<form id="testForm">
+
+<label>Test Title</label>
+<input
+    id="testTitle"
+    type="text"
+    placeholder="MHT-CET Mock Test 4"
+    required
+>
+
+<label>Description</label>
+<textarea
+    id="testDescription"
+    placeholder="Full PCM practice test"
+></textarea>
+
+<div class="grid2">
+
+<div>
+<label>Duration (minutes)</label>
+<input
+    id="testDuration"
+    type="number"
+    value="180"
+    min="1"
+    required
+>
+</div>
+
+<div>
+<label>Total Questions</label>
+<input
+    id="testQuestions"
+    type="number"
+    value="150"
+    min="1"
+    required
+>
+</div>
+
+</div>
+
+<button class="primary" type="submit">
+Create Test
+</button>
+
+<div id="testMessage" class="message"></div>
+
+</form>
+
+</section>
+
+
+<!-- ================= TESTS ================= -->
+
+<section class="card">
+
+<h2>📝 Mock Tests</h2>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Title</th>
+<th>Duration</th>
+<th>Questions</th>
+<th>Status</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody id="testsTable">
+<tr>
+<td colspan="6">Loading tests...</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- ================= ADD QUESTION ================= -->
+
+<section class="card">
+
+<h2>➕ Add Questions</h2>
+
+<div class="question-counter" id="questionCounter">
+Select a mock test to start adding questions.
+</div>
+
+<form id="questionForm">
+
+<label>Select Test</label>
+
+<select id="questionTest" required>
+
+<option value="">
+Select a test
+</option>
+
+</select>
+
+
+<label>Subject</label>
+
+<select id="subject" required>
+
+<option value="">
+Select subject
+</option>
+
+<option value="Physics">
+Physics
+</option>
+
+<option value="Chemistry">
+Chemistry
+</option>
+
+<option value="Mathematics">
+Mathematics
+</option>
+
+</select>
+
+
+<label>Question</label>
+
+<textarea
+id="questionText"
+placeholder="Enter question"
+required
+></textarea>
+
+
+<div class="grid2">
+
+<div>
+
+<label>Option A</label>
+
+<input
+id="optionA"
+required
+>
+
+</div>
+
+
+<div>
+
+<label>Option B</label>
+
+<input
+id="optionB"
+required
+>
+
+</div>
+
+
+<div>
+
+<label>Option C</label>
+
+<input
+id="optionC"
+required
+>
+
+</div>
+
+
+<div>
+
+<label>Option D</label>
+
+<input
+id="optionD"
+required
+>
+
+</div>
+
+</div>
+
+
+<label>Correct Answer</label>
+
+<select id="correctOption" required>
+
+<option value="">
+Select correct answer
+</option>
+
+<option value="A">
+A
+</option>
+
+<option value="B">
+B
+</option>
+
+<option value="C">
+C
+</option>
+
+<option value="D">
+D
+</option>
+
+</select>
+
+
+<label>Marks</label>
+
+<input
+id="marks"
+type="number"
+step="0.25"
+value="1"
+min="0"
+required
+>
+
+
+<label>Explanation (optional)</label>
+
+<textarea
+id="explanation"
+placeholder="Explain the correct answer"
+></textarea>
+
+
+<button
+class="primary"
+type="submit"
+id="addQuestionBtn"
+>
+Add Question & Continue
+</button>
+
+<button
+class="secondary"
+type="button"
+id="clearQuestionBtn"
+>
+Clear Question
+</button>
+
+<div id="questionMessage" class="message"></div>
+
+</form>
+
+</section>
+
+
+<!-- ================= QUESTIONS ================= -->
+
+<section class="card">
+
+<h2>📚 Questions</h2>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Test</th>
+<th>Subject</th>
+<th>Question</th>
+<th>Correct</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="questionsTable">
+
+<tr>
+<td colspan="6">
+Loading questions...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- ================= STUDY MATERIALS ================= -->
+
+<section class="card">
+
+<h2>📖 Study Materials</h2>
+
+<div class="upload-box">
+
+<form id="materialForm">
+
+<div class="grid2">
+
+<div>
+
+<label>Material Title</label>
+
+<input
+id="materialTitle"
+type="text"
+placeholder="Physics Chapter 1 Notes"
+required
+>
+
+</div>
+
+
+<div>
+
+<label>Subject</label>
+
+<select id="materialSubject" required>
+
+<option value="">
+Select subject
+</option>
+
+<option value="Physics">
+Physics
+</option>
+
+<option value="Chemistry">
+Chemistry
+</option>
+
+<option value="Mathematics">
+Mathematics
+</option>
+
+<option value="General">
+General
+</option>
+
+</select>
+
+</div>
+
+</div>
+
+
+<label>Chapter / Topic</label>
+
+<input
+id="materialChapter"
+type="text"
+placeholder="e.g. Rotational Dynamics"
+>
+
+
+<label>Description</label>
+
+<textarea
+id="materialDescription"
+placeholder="Short description of this study material"
+></textarea>
+
+
+<label>Select File</label>
+
+<input
+id="materialFile"
+type="file"
+accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png"
+required
+>
+
+<div class="help-text">
+Upload PDF, notes, images or document files. Use a clear file name.
+</div>
+
+
+<button
+class="primary"
+type="submit"
+id="uploadMaterialBtn"
+>
+📤 Upload Study Material
+</button>
+
+<div
+id="materialMessage"
+class="message"
+></div>
+
+</form>
+
+</div>
+
+
+<h3 style="margin-bottom:15px;">
+Uploaded Materials
+</h3>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Title</th>
+<th>Subject</th>
+<th>Chapter</th>
+<th>File</th>
+<th>Date</th>
+<th>Action</th>
+</tr>
+
+</thead>
+
+<tbody id="materialsTable">
+
+<tr>
+<td colspan="7">
+Loading study materials...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- ================= STUDENTS ================= -->
+
+<section class="card">
+
+<h2>👨‍🎓 Students</h2>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Name</th>
+<th>Email</th>
+<th>Role</th>
+<th>Joined</th>
+</tr>
+
+</thead>
+
+<tbody id="studentsTable">
+
+<tr>
+<td colspan="4">
+Loading students...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+
+<!-- ================= RESULTS ================= -->
+
+<section class="card">
+
+<h2>📊 Test Results</h2>
+
+<div class="table-wrap">
+
+<table>
+
+<thead>
+
+<tr>
+<th>Student</th>
+<th>Email</th>
+<th>Test</th>
+<th>Score</th>
+<th>Correct</th>
+<th>Wrong</th>
+<th>Unanswered</th>
+<th>Date</th>
+</tr>
+
+</thead>
+
+<tbody id="resultsTable">
+
+<tr>
+<td colspan="8">
+Loading results...
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+</main>
+
+
+<script>
+
+const supabaseClient =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+);
+
+
+const loading =
+document.getElementById("loading");
+
+const adminContent =
+document.getElementById("adminContent");
+
+
+let tests = [];
+
+
+/* =====================================================
+MESSAGE
+===================================================== */
+
+function showMessage(element,text,type){
+
+    element.textContent = text;
+
+    element.className =
+        "message " + type;
+
+    setTimeout(() => {
+
+        element.className = "message";
+
+    },5000);
+}
+
+
+/* =====================================================
+CHECK ADMIN
+===================================================== */
+
+async function checkAdmin(){
+
+    try{
+
+        const {
+            data:{user},
+            error
+        } =
+        await supabaseClient.auth.getUser();
+
+
+        if(error || !user){
+
+            window.location.href =
+                "login.html";
+
+            return;
+        }
+
+
+        const {
+            data:profile,
+            error:profileError
+        } =
+        await supabaseClient
+            .from("profiles")
+            .select("id,full_name,email,role")
+            .eq("id",user.id)
+            .maybeSingle();
+
+
+        if(profileError){
+
+            console.error(profileError);
+
+            loading.textContent =
+                "Unable to check admin account. Check the browser console.";
+
+            return;
+        }
+
+
+        if(
+            !profile ||
+            profile.role !== "admin"
+        ){
+
+            loading.innerHTML =
+                "❌ You are not an admin.<br><br>" +
+                "<button class='primary' onclick=\"location.href='dashboard.html'\">" +
+                "Go to Dashboard</button>";
+
+            return;
+        }
+
+
+        loading.classList.add("hidden");
+
+        adminContent.classList.remove("hidden");
+
+
+        await loadEverything();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        loading.textContent =
+            "Something went wrong. Open F12 → Console.";
+
+    }
+
+}
+
+
+/* =====================================================
+LOAD EVERYTHING
+===================================================== */
+
+async function loadEverything(){
+
+    await loadTests();
+
+    await loadQuestions();
+
+    await loadMaterials();
+
+    await loadStudents();
+
+    await loadResults();
+
+    await loadStats();
+
+}
+
+
+/* =====================================================
+LOAD TESTS
+===================================================== */
+
+async function loadTests(){
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("mock_tests")
+        .select("*")
+        .order("id",{ascending:true});
+
+
+    if(error){
+
+        console.error("Tests:",error);
+
+        document.getElementById(
+            "testsTable"
+        ).innerHTML =
+        `
+        <tr>
+        <td colspan="6">
+        Error loading tests:
+        ${escapeHtml(error.message)}
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    tests = data || [];
+
+
+    const table =
+        document.getElementById(
+            "testsTable"
+        );
+
+
+    const select =
+        document.getElementById(
+            "questionTest"
+        );
+
+
+    const currentSelected =
+        select.value;
+
+
+    table.innerHTML = "";
+
+
+    select.innerHTML =
+        `
+        <option value="">
+        Select a test
+        </option>
+        `;
+
+
+    if(tests.length === 0){
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="6">
+        No tests found.
+        </td>
+        </tr>
+        `;
+
+        updateQuestionCounter();
+
+        return;
+    }
+
+
+    tests.forEach(test => {
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML =
+        `
+        <td>${test.id}</td>
+
+        <td>
+        ${escapeHtml(test.title)}
+        </td>
+
+        <td>
+        ${test.duration_minutes} min
+        </td>
+
+        <td>
+        ${test.total_questions}
+        </td>
+
+        <td>
+        <span class="badge">
+        ${test.is_active ? "Active" : "Inactive"}
+        </span>
+        </td>
+
+        <td>
+
+        <button
+        class="danger small"
+        onclick="deleteTest(${test.id})"
+        >
+        Delete
+        </button>
+
+        </td>
+        `;
+
+
+        table.appendChild(row);
+
+
+        const option =
+            document.createElement("option");
+
+
+        option.value =
+            test.id;
+
+
+        option.textContent =
+            test.title;
+
+
+        select.appendChild(option);
+
+    });
+
+
+    if(
+        currentSelected &&
+        tests.some(
+            t => String(t.id) === String(currentSelected)
+        )
+    ){
+
+        select.value =
+            currentSelected;
+
+    }
+
+
+    updateQuestionCounter();
+
+}
+
+
+/* =====================================================
+CREATE TEST
+===================================================== */
+
+document
+.getElementById("testForm")
+.addEventListener(
+"submit",
+async function(event){
+
+    event.preventDefault();
+
+
+    const title =
+        document
+        .getElementById("testTitle")
+        .value
+        .trim();
+
+
+    const description =
+        document
+        .getElementById("testDescription")
+        .value
+        .trim();
+
+
+    const duration =
+        Number(
+            document
+            .getElementById("testDuration")
+            .value
+        );
+
+
+    const totalQuestions =
+        Number(
+            document
+            .getElementById("testQuestions")
+            .value
+        );
+
+
+    const message =
+        document.getElementById(
+            "testMessage"
+        );
+
+
+    const {
+        error
+    } =
+    await supabaseClient
+        .from("mock_tests")
+        .insert({
+
+            title,
+
+            description,
+
+            duration_minutes:
+                duration,
+
+            total_questions:
+                totalQuestions,
+
+            is_active:true
+
+        });
+
+
+    if(error){
+
+        console.error(error);
+
+        showMessage(
+            message,
+            "Error creating test: " +
+            error.message,
+            "error"
+        );
+
+        return;
+    }
+
+
+    showMessage(
+        message,
+        "Test created successfully!",
+        "success"
+    );
+
+
+    this.reset();
+
+
+    document.getElementById(
+        "testDuration"
+    ).value = 180;
+
+
+    document.getElementById(
+        "testQuestions"
+    ).value = 150;
+
+
+    await loadTests();
+
+    await loadStats();
+
+});
+
+
+/* =====================================================
+DELETE TEST
+===================================================== */
+
+async function deleteTest(id){
+
+    if(
+        !confirm(
+            "Delete this test?\n\n" +
+            "All questions and related attempts may also be deleted."
+        )
+    ){
+
+        return;
+    }
+
+
+    const {
+        error
+    } =
+    await supabaseClient
+        .from("mock_tests")
+        .delete()
+        .eq("id",id);
+
+
+    if(error){
+
+        alert(
+            "Could not delete test:\n" +
+            error.message
+        );
+
+        console.error(error);
+
+        return;
+    }
+
+
+    alert("Test deleted.");
+
+
+    await loadEverything();
+
+}
+
+
+/* =====================================================
+QUESTION TEST SELECT
+===================================================== */
+
+document
+.getElementById("questionTest")
+.addEventListener(
+"change",
+updateQuestionCounter
+);
+
+
+async function updateQuestionCounter(){
+
+    const testId =
+        document.getElementById(
+            "questionTest"
+        ).value;
+
+
+    const counter =
+        document.getElementById(
+            "questionCounter"
+        );
+
+
+    if(!testId){
+
+        counter.textContent =
+            "Select a mock test to start adding questions.";
+
+        return;
+    }
+
+
+    const test =
+        tests.find(
+            t => String(t.id) === String(testId)
+        );
+
+
+    const {
+        count,
+        error
+    } =
+    await supabaseClient
+        .from("questions")
+        .select("*",{
+            count:"exact",
+            head:true
+        })
+        .eq("test_id",testId);
+
+
+    if(error){
+
+        counter.textContent =
+            "Selected test: " +
+            (test?.title || "Test");
+
+        return;
+    }
+
+
+    counter.textContent =
+        "Selected: " +
+        (test?.title || "Test") +
+        " • Questions added: " +
+        (count || 0) +
+        " / " +
+        (test?.total_questions || "∞");
+
+}
+
+
+/* =====================================================
+ADD QUESTION
+===================================================== */
+
+document
+.getElementById("questionForm")
+.addEventListener(
+"submit",
+async function(event){
+
+    event.preventDefault();
+
+
+    const testId =
+        Number(
+            document
+            .getElementById("questionTest")
+            .value
+        );
+
+
+    if(!testId){
+
+        showMessage(
+            document.getElementById(
+                "questionMessage"
+            ),
+            "Please select a mock test.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const subject =
+        document
+        .getElementById("subject")
+        .value;
+
+
+    const questionText =
+        document
+        .getElementById("questionText")
+        .value
+        .trim();
+
+
+    const optionA =
+        document
+        .getElementById("optionA")
+        .value
+        .trim();
+
+
+    const optionB =
+        document
+        .getElementById("optionB")
+        .value
+        .trim();
+
+
+    const optionC =
+        document
+        .getElementById("optionC")
+        .value
+        .trim();
+
+
+    const optionD =
+        document
+        .getElementById("optionD")
+        .value
+        .trim();
+
+
+    const correctOption =
+        document
+        .getElementById("correctOption")
+        .value;
+
+
+    const marks =
+        Number(
+            document
+            .getElementById("marks")
+            .value
+        );
+
+
+    const explanation =
+        document
+        .getElementById("explanation")
+        .value
+        .trim();
+
+
+    const message =
+        document.getElementById(
+            "questionMessage"
+        );
+
+
+    const button =
+        document.getElementById(
+            "addQuestionBtn"
+        );
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "Adding Question...";
+
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("questions")
+        .insert({
+
+            test_id:testId,
+
+            subject:subject,
+
+            question_text:questionText,
+
+            option_a:optionA,
+
+            option_b:optionB,
+
+            option_c:optionC,
+
+            option_d:optionD,
+
+            correct_option:correctOption,
+
+            marks:marks,
+
+            explanation:explanation || null
+
+        })
+        .select()
+        .single();
+
+
+    button.disabled = false;
+
+    button.textContent =
+        "Add Question & Continue";
+
+
+    if(error){
+
+        console.error(
+            "Question insert error:",
+            error
+        );
+
+
+        showMessage(
+            message,
+            "Error adding question: " +
+            error.message,
+            "error"
+        );
+
+        return;
+    }
+
+
+    showMessage(
+        message,
+        "✅ Question added successfully! You can enter the next question.",
+        "success"
+    );
+
+
+    /*
+       IMPORTANT:
+       Keep the selected TEST.
+       Clear only the current question fields.
+    */
+
+    document.getElementById(
+        "questionText"
+    ).value = "";
+
+
+    document.getElementById(
+        "optionA"
+    ).value = "";
+
+
+    document.getElementById(
+        "optionB"
+    ).value = "";
+
+
+    document.getElementById(
+        "optionC"
+    ).value = "";
+
+
+    document.getElementById(
+        "optionD"
+    ).value = "";
+
+
+    document.getElementById(
+        "correctOption"
+    ).value = "";
+
+
+    document.getElementById(
+        "explanation"
+    ).value = "";
+
+
+    /*
+       Keep marks at 1
+       and keep subject selected.
+    */
+
+
+    await loadQuestions();
+
+    await loadStats();
+
+    await updateQuestionCounter();
+
+
+    document
+    .getElementById("questionText")
+    .focus();
+
+});
+
+
+/* =====================================================
+CLEAR CURRENT QUESTION
+===================================================== */
+
+document
+.getElementById("clearQuestionBtn")
+.addEventListener(
+"click",
+function(){
+
+    document.getElementById(
+        "questionText"
+    ).value = "";
+
+    document.getElementById(
+        "optionA"
+    ).value = "";
+
+    document.getElementById(
+        "optionB"
+    ).value = "";
+
+    document.getElementById(
+        "optionC"
+    ).value = "";
+
+    document.getElementById(
+        "optionD"
+    ).value = "";
+
+    document.getElementById(
+        "correctOption"
+    ).value = "";
+
+    document.getElementById(
+        "explanation"
+    ).value = "";
+
+    document.getElementById(
+        "questionText"
+    ).focus();
+
+});
+
+
+/* =====================================================
+LOAD QUESTIONS
+===================================================== */
+
+async function loadQuestions(){
+
+    const table =
+        document.getElementById(
+            "questionsTable"
+        );
+
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("questions")
+        .select(`
+            id,
+            test_id,
+            subject,
+            question_text,
+            correct_option
+        `)
+        .order(
+            "id",
+            {ascending:false}
+        );
+
+
+    /*
+       NO .limit(100)
+       So admin can see all questions.
+    */
+
+
+    if(error){
+
+        console.error(
+            "Questions:",
+            error
+        );
+
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="6">
+        Error loading questions:
+        ${escapeHtml(error.message)}
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    table.innerHTML = "";
+
+
+    if(
+        !data ||
+        data.length === 0
+    ){
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="6">
+        No questions added yet.
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    data.forEach(question => {
+
+        const test =
+            tests.find(
+                t =>
+                Number(t.id) ===
+                Number(question.test_id)
+            );
+
+
+        const testTitle =
+            test
+            ? test.title
+            : "Unknown test";
+
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML =
+        `
+        <td>
+        ${question.id}
+        </td>
+
+        <td>
+        ${escapeHtml(testTitle)}
+        </td>
+
+        <td>
+        ${escapeHtml(question.subject)}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            question.question_text
+        ).substring(0,80)}
+        ${
+            question.question_text.length > 80
+            ? "..."
+            : ""
+        }
+        </td>
+
+        <td>
+        ${question.correct_option}
+        </td>
+
+        <td>
+
+        <button
+        class="danger small"
+        onclick="deleteQuestion(${question.id})"
+        >
+        Delete
+        </button>
+
+        </td>
+        `;
+
+
+        table.appendChild(row);
+
+    });
+
+}
+
+
+/* =====================================================
+DELETE QUESTION
+===================================================== */
+
+async function deleteQuestion(id){
+
+    if(
+        !confirm(
+            "Delete this question?"
+        )
+    ){
+
+        return;
+    }
+
+
+    const {
+        error
+    } =
+    await supabaseClient
+        .from("questions")
+        .delete()
+        .eq("id",id);
+
+
+    if(error){
+
+        alert(
+            "Could not delete question:\n" +
+            error.message
+        );
+
+        console.error(error);
+
+        return;
+    }
+
+
+    await loadQuestions();
+
+    await loadStats();
+
+    await updateQuestionCounter();
+
+}
+
+
+/* =====================================================
+UPLOAD STUDY MATERIAL
+===================================================== */
+
+document
+.getElementById("materialForm")
+.addEventListener(
+"submit",
+async function(event){
+
+    event.preventDefault();
+
+
+    const title =
+        document
+        .getElementById("materialTitle")
+        .value
+        .trim();
+
+
+    const subject =
+        document
+        .getElementById("materialSubject")
+        .value;
+
+
+    const chapter =
+        document
+        .getElementById("materialChapter")
+        .value
+        .trim();
+
+
+    const description =
+        document
+        .getElementById("materialDescription")
+        .value
+        .trim();
+
+
+    const file =
+        document
+        .getElementById("materialFile")
+        .files[0];
+
+
+    const message =
+        document.getElementById(
+            "materialMessage"
+        );
+
+
+    const button =
+        document.getElementById(
+            "uploadMaterialBtn"
+        );
+
+
+    if(!file){
+
+        showMessage(
+            message,
+            "Please select a file.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    /*
+       50 MB safety limit for the admin UI.
+    */
+
+    const maxSize =
+        50 * 1024 * 1024;
+
+
+    if(file.size > maxSize){
+
+        showMessage(
+            message,
+            "File is larger than 50 MB. Please upload a smaller file.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "Uploading...";
+
+
+    try{
+
+        const {
+            data:{user},
+            error:userError
+        } =
+        await supabaseClient.auth.getUser();
+
+
+        if(
+            userError ||
+            !user
+        ){
+
+            throw new Error(
+                "Your admin session has expired. Please log in again."
+            );
+        }
+
+
+        /*
+           Make a safe unique file name.
+        */
+
+        const extension =
+            file.name.includes(".")
+            ? "." +
+              file.name
+              .split(".")
+              .pop()
+              .toLowerCase()
+            : "";
+
+
+        const safeName =
+            file.name
+            .replace(
+                /\.[^/.]+$/,
+                ""
+            )
+            .replace(
+                /[^a-zA-Z0-9-_]/g,
+                "-"
+            )
+            .substring(0,80);
+
+
+        const filePath =
+            user.id +
+            "/" +
+            Date.now() +
+            "-" +
+            safeName +
+            extension;
+
+
+        /*
+           Upload file to Supabase Storage.
+        */
+
+        const {
+            error:uploadError
+        } =
+        await supabaseClient
+            .storage
+            .from("study-materials")
+            .upload(
+                filePath,
+                file,
+                {
+                    cacheControl:"3600",
+                    upsert:false
+                }
+            );
+
+
+        if(uploadError){
+
+            throw uploadError;
+        }
+
+
+        /*
+           Get public URL.
+        */
+
+        const {
+            data:urlData
+        } =
+        supabaseClient
+            .storage
+            .from("study-materials")
+            .getPublicUrl(
+                filePath
+            );
+
+
+        const fileUrl =
+            urlData.publicUrl;
+
+
+        /*
+           Save file information
+           in study_materials table.
+        */
+
+        const {
+            error:databaseError
+        } =
+        await supabaseClient
+            .from("study_materials")
+            .insert({
+
+                title:title,
+
+                subject:subject,
+
+                chapter:
+                    chapter || null,
+
+                description:
+                    description || null,
+
+                file_name:
+                    file.name,
+
+                file_path:
+                    filePath,
+
+                file_url:
+                    fileUrl,
+
+                uploaded_by:
+                    user.id,
+
+                is_published:true
+
+            });
+
+
+        if(databaseError){
+
+            /*
+               If database insert fails,
+               remove uploaded file so
+               we don't leave an unused file.
+            */
+
+            await supabaseClient
+                .storage
+                .from("study-materials")
+                .remove([
+                    filePath
+                ]);
+
+            throw databaseError;
+        }
+
+
+        showMessage(
+            message,
+            "✅ Study material uploaded successfully!",
+            "success"
+        );
+
+
+        this.reset();
+
+
+        await loadMaterials();
+
+
+    }
+    catch(error){
+
+        console.error(
+            "Material upload error:",
+            error
+        );
+
+
+        showMessage(
+            message,
+            "Upload failed: " +
+            error.message,
+            "error"
+        );
+
+    }
+    finally{
+
+        button.disabled = false;
+
+        button.textContent =
+            "📤 Upload Study Material";
+
+    }
+
+});
+
+
+/* =====================================================
+LOAD STUDY MATERIALS
+===================================================== */
+
+async function loadMaterials(){
+
+    const table =
+        document.getElementById(
+            "materialsTable"
+        );
+
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("study_materials")
+        .select("*")
+        .order(
+            "created_at",
+            {ascending:false}
+        );
+
+
+    if(error){
+
+        console.error(
+            "Materials:",
+            error
+        );
+
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="7">
+        Error loading materials:
+        ${escapeHtml(error.message)}
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    table.innerHTML = "";
+
+
+    if(
+        !data ||
+        data.length === 0
+    ){
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="7">
+        No study materials uploaded yet.
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    data.forEach(material => {
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML =
+        `
+        <td>
+        ${material.id}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            material.title
+        )}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            material.subject
+        )}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            material.chapter || "-"
+        )}
+        </td>
+
+        <td class="material-file">
+
+        <a
+        class="material-link"
+        href="${escapeHtml(material.file_url)}"
+        target="_blank"
+        rel="noopener noreferrer"
+        >
+        📄 ${escapeHtml(
+            material.file_name
+        )}
+        </a>
+
+        </td>
+
+        <td>
+        ${formatDate(
+            material.created_at
+        )}
+        </td>
+
+        <td>
+
+        <button
+        class="danger small"
+        onclick="deleteMaterial(
+            ${material.id},
+            '${escapeJs(material.file_path)}'
+        )"
+        >
+        Delete
+        </button>
+
+        </td>
+        `;
+
+
+        table.appendChild(row);
+
+    });
+
+}
+
+
+/* =====================================================
+DELETE STUDY MATERIAL
+===================================================== */
+
+async function deleteMaterial(
+    id,
+    filePath
+){
+
+    if(
+        !confirm(
+            "Delete this study material?\n\n" +
+            "The database record and uploaded file will be deleted."
+        )
+    ){
+
+        return;
+    }
+
+
+    try{
+
+        /*
+           Delete Storage file.
+        */
+
+        const {
+            error:storageError
+        } =
+        await supabaseClient
+            .storage
+            .from("study-materials")
+            .remove([
+                filePath
+            ]);
+
+
+        if(storageError){
+
+            console.warn(
+                "Storage delete warning:",
+                storageError
+            );
+
+        }
+
+
+        /*
+           Delete database record.
+        */
+
+        const {
+            error:databaseError
+        } =
+        await supabaseClient
+            .from("study_materials")
+            .delete()
+            .eq("id",id);
+
+
+        if(databaseError){
+
+            throw databaseError;
+        }
+
+
+        alert(
+            "Study material deleted."
+        );
+
+
+        await loadMaterials();
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        alert(
+            "Could not delete material:\n" +
+            error.message
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+LOAD STUDENTS
+===================================================== */
+
+async function loadStudents(){
+
+    const table =
+        document.getElementById(
+            "studentsTable"
+        );
+
+
+    const {
+        data,
+        error
+    } =
+    await supabaseClient
+        .from("profiles")
+        .select(
+            "id,full_name,email,role,created_at"
+        )
+        .order(
+            "created_at",
+            {ascending:false}
+        );
+
+
+    if(error){
+
+        console.error(
+            "Students:",
+            error
+        );
+
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="4">
+        Error loading students:
+        ${escapeHtml(error.message)}
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    table.innerHTML = "";
+
+
+    const students =
+        (data || [])
+        .filter(
+            student =>
+            student.role === "student"
+        );
+
+
+    if(
+        students.length === 0
+    ){
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="4">
+        No students found.
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    students.forEach(student => {
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML =
+        `
+        <td>
+        ${escapeHtml(
+            student.full_name ||
+            "Student"
+        )}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            student.email || ""
+        )}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            student.role
+        )}
+        </td>
+
+        <td>
+        ${formatDate(
+            student.created_at
+        )}
+        </td>
+        `;
+
+
+        table.appendChild(row);
+
+    });
+
+}
+
+
+/* =====================================================
+LOAD RESULTS
+===================================================== */
+
+async function loadResults(){
+
+    const table =
+        document.getElementById(
+            "resultsTable"
+        );
+
+
+    table.innerHTML =
+    `
+    <tr>
+    <td colspan="8">
+    Loading results...
+    </td>
+    </tr>
+    `;
+
+
+    const {
+        data:attempts,
+        error
+    } =
+    await supabaseClient
+        .from("test_attempts")
+        .select(`
+            id,
+            user_id,
+            test_id,
+            score,
+            correct_answers,
+            wrong_answers,
+            unanswered,
+            submitted_at,
+            created_at
+        `)
+        .order(
+            "created_at",
+            {ascending:false}
+        )
+        .limit(100);
+
+
+    if(error){
+
+        console.error(
+            "Results:",
+            error
+        );
+
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="8">
+        Error loading results:
+        ${escapeHtml(error.message)}
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    if(
+        !attempts ||
+        attempts.length === 0
+    ){
+
+        table.innerHTML =
+        `
+        <tr>
+        <td colspan="8">
+        No test results yet.
+        </td>
+        </tr>
+        `;
+
+        return;
+    }
+
+
+    const userIds =
+        [
+            ...new Set(
+                attempts.map(
+                    a => a.user_id
+                )
+            )
+        ];
+
+
+    const testIds =
+        [
+            ...new Set(
+                attempts.map(
+                    a => a.test_id
+                )
+            )
+        ];
+
+
+    const {
+        data:profiles,
+        error:profileError
+    } =
+    await supabaseClient
+        .from("profiles")
+        .select(
+            "id,full_name,email"
+        )
+        .in(
+            "id",
+            userIds
+        );
+
+
+    if(profileError){
+
+        console.error(
+            profileError
+        );
+
+    }
+
+
+    const {
+        data:testData,
+        error:testError
+    } =
+    await supabaseClient
+        .from("mock_tests")
+        .select(
+            "id,title"
+        )
+        .in(
+            "id",
+            testIds
+        );
+
+
+    if(testError){
+
+        console.error(
+            testError
+        );
+
+    }
+
+
+    const profileMap = {};
+
+
+    (profiles || [])
+    .forEach(profile => {
+
+        profileMap[
+            profile.id
+        ] = profile;
+
+    });
+
+
+    const testMap = {};
+
+
+    (testData || [])
+    .forEach(test => {
+
+        testMap[
+            test.id
+        ] = test;
+
+    });
+
+
+    table.innerHTML = "";
+
+
+    attempts.forEach(attempt => {
+
+        const profile =
+            profileMap[
+                attempt.user_id
+            ] || {};
+
+
+        const test =
+            testMap[
+                attempt.test_id
+            ] || {};
+
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML =
+        `
+        <td>
+        ${escapeHtml(
+            profile.full_name ||
+            "Student"
+        )}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            profile.email ||
+            "-"
+        )}
+        </td>
+
+        <td>
+        ${escapeHtml(
+            test.title ||
+            "Test"
+        )}
+        </td>
+
+        <td>
+        <strong>
+        ${attempt.score}
+        </strong>
+        </td>
+
+        <td>
+        ${attempt.correct_answers}
+        </td>
+
+        <td>
+        ${attempt.wrong_answers}
+        </td>
+
+        <td>
+        ${attempt.unanswered}
+        </td>
+
+        <td>
+        ${formatDate(
+            attempt.submitted_at ||
+            attempt.created_at
+        )}
+        </td>
+        `;
+
+
+        table.appendChild(row);
+
+    });
+
+}
+
+
+/* =====================================================
+STATISTICS
+===================================================== */
+
+async function loadStats(){
+
+    const testsResult =
+        await supabaseClient
+            .from("mock_tests")
+            .select("*",{
+                count:"exact",
+                head:true
+            });
+
+
+    const questionsResult =
+        await supabaseClient
+            .from("questions")
+            .select("*",{
+                count:"exact",
+                head:true
+            });
+
+
+    const studentsResult =
+        await supabaseClient
+            .from("profiles")
+            .select("*",{
+                count:"exact",
+                head:true
+            })
+            .eq(
+                "role",
+                "student"
+            );
+
+
+    const attemptsResult =
+        await supabaseClient
+            .from("test_attempts")
+            .select("*",{
+                count:"exact",
+                head:true
+            });
+
+
+    document.getElementById(
+        "testCount"
+    ).textContent =
+        testsResult.count ?? 0;
+
+
+    document.getElementById(
+        "questionCount"
+    ).textContent =
+        questionsResult.count ?? 0;
+
+
+    document.getElementById(
+        "studentCount"
+    ).textContent =
+        studentsResult.count ?? 0;
+
+
+    document.getElementById(
+        "attemptCount"
+    ).textContent =
+        attemptsResult.count ?? 0;
+
+}
+
+
+/* =====================================================
+LOGOUT
+===================================================== */
+
+document
+.getElementById("logoutBtn")
+.addEventListener(
+"click",
+async function(){
+
+    this.disabled = true;
+
+    this.textContent =
+        "Logging out...";
+
+
+    const {
+        error
+    } =
+    await supabaseClient.auth.signOut({
+        scope:"local"
+    });
+
+
+    if(error){
+
+        console.error(error);
+
+        alert(
+            "Logout error:\n" +
+            error.message
+        );
+
+
+        this.disabled = false;
+
+        this.textContent =
+            "Logout";
+
+        return;
+    }
+
+
+    window.location.href =
+        "index.html";
+
+});
+
+
+/* =====================================================
+HELPERS
+===================================================== */
+
+function formatDate(date){
+
+    if(!date){
+
+        return "-";
+    }
+
+
+    return new Date(date)
+        .toLocaleString(
+            "en-IN"
+        );
+
+}
+
+
+function escapeHtml(value){
+
+    if(
+        value === null ||
+        value === undefined
+    ){
+
+        return "";
+    }
+
+
+    return String(value)
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+
+}
+
+
+function escapeJs(value){
+
+    if(
+        value === null ||
+        value === undefined
+    ){
+
+        return "";
+    }
+
+
+    return String(value)
+        .replaceAll(
+            "\\",
+            "\\\\"
+        )
+        .replaceAll(
+            "'",
+            "\\'"
+        )
+        .replaceAll(
+            "\n",
+            "\\n"
+        )
+        .replaceAll(
+            "\r",
+            "\\r"
+        );
+
+}
+
+
+/* =====================================================
+START
+===================================================== */
+
+checkAdmin();
+
+</script>
+
+</body>
+</html>
+
